@@ -1,0 +1,39 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-ef0c34ced26f1014cd5dbb2262dfb85c460aecc5",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "userSourceNameMap": {
+    "contracts/CrowdFund.sol": "project/contracts/CrowdFund.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/CrowdFund.sol": {
+        "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.20;\r\n\r\ncontract CrowdFund {\r\n    address public owner;\r\n    uint256 public totalFunds;\r\n    uint256 public goalAmount;\r\n    uint256 public deadline;\r\n    bool public goalReached;\r\n\r\n    mapping(address => uint256) public contributions;\r\n\r\n    event ContributionReceived(address indexed contributor, uint256 amount);\r\n    event Withdraw(address indexed owner, uint256 amount);\r\n    event RefundIssued(address indexed contributor, uint256 amount);\r\n\r\n    modifier onlyOwner() {\r\n        require(msg.sender == owner, \"Only owner can call this\");\r\n        _;\r\n    }\r\n\r\n    modifier campaignActive() {\r\n        require(block.timestamp < deadline, \"Campaign has ended\");\r\n        _;\r\n    }\r\n\r\n    constructor(uint256 _goalAmount, uint256 _duration) {\r\n        owner = msg.sender;\r\n        goalAmount = _goalAmount;\r\n        deadline = block.timestamp + _duration;\r\n    }\r\n\r\n    function contribute() public payable campaignActive {\r\n        require(msg.value > 0, \"Must send ETH\");\r\n        contributions[msg.sender] += msg.value;\r\n        totalFunds += msg.value;\r\n\r\n        if (totalFunds >= goalAmount) {\r\n            goalReached = true;\r\n        }\r\n\r\n        emit ContributionReceived(msg.sender, msg.value);\r\n    }\r\n\r\n    function withdraw() public onlyOwner {\r\n        require(goalReached, \"Goal not reached\");\r\n        uint256 amount = address(this).balance;\r\n        payable(owner).transfer(amount);\r\n        emit Withdraw(owner, amount);\r\n    }\r\n\r\n    function refund() public {\r\n        require(block.timestamp >= deadline, \"Campaign still active\");\r\n        require(!goalReached, \"Goal was reached; no refunds\");\r\n\r\n        uint256 contributed = contributions[msg.sender];\r\n        require(contributed > 0, \"No contributions to refund\");\r\n\r\n        contributions[msg.sender] = 0;\r\n        payable(msg.sender).transfer(contributed);\r\n        emit RefundIssued(msg.sender, contributed);\r\n    }\r\n}\r\n"
+      }
+    }
+  }
+}
