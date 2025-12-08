@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import CreateCampaignPage from '@/views/CreateCampaignPage.vue'
+import CrowdFund from '@/components/CrowdFund.vue'
+import Homepage from '@/components/Homepage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,7 +9,17 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: Homepage,
+    },
+    {
+      path: '/create',
+      name: 'createcampaign',
+      component: CreateCampaignPage,
+    },
+    {
+      path: '/crowdfund',
+      name: 'crowdfund',
+      component: CrowdFund,
     },
     {
       path: '/about',
