@@ -1,41 +1,37 @@
-<template>
-  <div class="min-h-screen flex flex-col">
-    <!-- NAVBAR -->
-    <nav class="bg-white shadow p-4 flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-blue-700">PeopleFund</h1>
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { useWeb3Store } from './stores/web3'
+// import CrowdFund from './components/CrowdFund.vue';
+import CampaignList from './components/CampaignList.vue'
+import CreateCampaign from './components/CreateCampaign.vue'
 
-      <div class="space-x-6 text-lg">
-        <RouterLink
-          to="/"
-          class="hover:text-blue-600 transition"
-        >Home</RouterLink>
+const ready = ref(false)
+const web3Store = useWeb3Store()
 
-        <RouterLink
-          to="/create"
-          class="hover:text-blue-600 transition"
-        >Create Campaign</RouterLink>
-
-        <RouterLink
-          to="/crowdfund"
-          class="hover:text-blue-600 transition"
-        >Enter Campaign</RouterLink>
-      </div>
-    </nav>
-
-    <!-- MAIN CONTENT -->
-    <main class="flex-1">
-      <RouterView />
-    </main>
-  </div>
-</template>
-
-<script setup>
-// App.vue doesn't need logic for a basic navbar
+onMounted(async () => {
+  console.log('Initializing Web3...')
+  await web3Store.init()
+  ready.value = true
+})
 </script>
 
-<style scoped>
-nav a.router-link-active {
-  font-weight: bold;
-  color: #1d4ed8; /* Tailwind blue-700 */
-}
-</style>
+<template>
+  <div v-if="ready">
+    <h3>Active account: {{ web3Store.accounts[web3Store.selectedAccountIndex] }}</h3>
+    <select
+      v-model="web3Store.selectedAccountIndex"
+      @change="web3Store.switchAccount(web3Store.selectedAccountIndex)"
+    >
+      <option v-for="(acc, idx) in web3Store.accounts" :value="idx" :key="acc">
+        {{ acc }}
+      </option>
+    </select>
+
+    <CreateCampaign />
+    <CampaignList />
+  </div>
+
+  <div v-else>
+    <h2>Loading...</h2>
+  </div>
+</template>
