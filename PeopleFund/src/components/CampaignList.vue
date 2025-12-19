@@ -86,5 +86,6 @@ function isOwner(ownerAddress: string) {
 .campaign-list {
   max-width: 600px;
   margin: auto;
+  background-color: darkblue;
 }
 </style>
