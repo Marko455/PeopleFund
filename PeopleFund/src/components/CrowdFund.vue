@@ -1,11 +1,127 @@
+<template>
+  <div class="max-w-md mx-auto p-6 text-black">
+    <div class="rounded-xl border bg-white shadow-sm p-6 space-y-5">
+      <!-- Header -->
+      <div class="text-center">
+        <h2 class="text-2xl font-bold">🎯 CrowdFund Campaign</h2>
+        <p
+          class="mt-2 inline-block px-3 py-1 text-xs rounded-full"
+          :class="isGoalReached ? 'bg-green-100' : 'bg-yellow-100'"
+        >
+          {{ isGoalReached ? 'Goal Reached' : 'Active Campaign' }}
+        </p>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <p class="font-semibold">Goal</p>
+          <p>{{ goal }} ETH</p>
+        </div>
+        <div>
+          <p class="font-semibold">Raised</p>
+          <p>{{ totalRaised }} ETH</p>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div>
+        <div class="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+          <div
+            class="h-full bg-blue-600 transition-all"
+            :style="{
+              width:
+                Math.min(
+                  (Number(totalRaised) / Number(goal)) * 100,
+                  100
+                ) + '%',
+            }"
+          />
+        </div>
+      </div>
+
+      <!-- Time -->
+      <div class="text-sm text-center">
+        <p v-if="timeLeft > 0">
+          ⏳ Time remaining:
+          <span class="font-medium">
+            {{ (timeLeft / 60).toFixed(2) }} minutes
+          </span>
+        </p>
+        <p v-else class="font-semibold text-red-600">
+          ⛔ Campaign Ended
+        </p>
+      </div>
+
+      <!-- Donate -->
+      <div v-if="timeLeft > 0" class="flex gap-3">
+        <input
+          v-model="donationEth"
+          type="number"
+          min="0.01"
+          step="0.01"
+          placeholder="ETH"
+          class="flex-1 rounded-lg border px-3 py-2 text-sm"
+        />
+        <button
+          @click="donate"
+          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
+        >
+          Donate
+        </button>
+      </div>
+
+      <!-- Actions -->
+      <div v-if="timeLeft === 0" class="flex gap-3">
+        <button
+          v-if="isGoalReached && !isFundsWithdrawn"
+          @click="withdrawFunds"
+          class="flex-1 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition"
+        >
+          Withdraw Funds
+        </button>
+
+        <button
+          v-if="!isGoalReached"
+          @click="refund"
+          class="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
+        >
+          Refund
+        </button>
+      </div>
+
+      <!-- Donors -->
+      <div>
+        <h3 class="text-lg font-semibold mb-2">💖 Donors</h3>
+
+        <ul
+          v-if="donors.length"
+          class="max-h-40 overflow-y-auto divide-y border rounded-lg"
+        >
+          <li
+            v-for="d in donors"
+            :key="d.donor"
+            class="flex justify-between px-3 py-2 text-sm"
+          >
+            <span class="truncate">{{ d.donor }}</span>
+            <span class="font-medium">{{ d.amount }} ETH</span>
+          </li>
+        </ul>
+
+        <p v-else class="text-sm text-center py-4">
+          No donations yet
+        </p>
+      </div>
+    </div>
+  </div>
+</template>
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ethers } from 'ethers'
-// @ts-ignore: Allow importing JSON ABI without resolveJsonModule
+// @ts-ignore
 import abi from '../abi/CrowdFund.json'
 
 const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
-
 
 let provider: ethers.JsonRpcProvider
 let signer: ethers.Signer
@@ -20,25 +136,22 @@ const isFundsWithdrawn = ref(false)
 const donors = ref<{ donor: string; amount: string }[]>([])
 const donationEth = ref('0')
 
-
 async function init() {
   provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545')
   signer = await provider.getSigner(0)
   contract = new ethers.Contract(contractAddress, abi.abi, signer)
-
   await refreshData()
 }
 
-
 async function refreshData() {
-  if (!contract) return
-  const [_goal, _total, _deadline, _goalReached, _withdrawn] = await Promise.all([
-    contract.goal(),
-    contract.totalRaised(),
-    contract.deadline(),
-    contract.goalReached(),
-    contract.fundsWithdrawn(),
-  ])
+  const [_goal, _total, _deadline, _goalReached, _withdrawn] =
+    await Promise.all([
+      contract.goal(),
+      contract.totalRaised(),
+      contract.deadline(),
+      contract.goalReached(),
+      contract.fundsWithdrawn(),
+    ])
 
   goal.value = ethers.formatEther(_goal)
   totalRaised.value = ethers.formatEther(_total)
@@ -59,9 +172,7 @@ async function loadDonors() {
   }))
 }
 
-
 async function donate() {
-  if (!contract) return
   const tx = await contract.donate({
     value: ethers.parseEther(donationEth.value),
   })
@@ -83,57 +194,3 @@ async function refund() {
 
 onMounted(init)
 </script>
-
-<template>
-  <div class="cf-container">
-    <h2>🎯 CrowdFund Campaign</h2>
-
-    <p><strong>Goal:</strong> {{ goal }} ETH</p>
-    <p><strong>Total Raised:</strong> {{ totalRaised }} ETH</p>
-
-    <p v-if="timeLeft > 0">⏳ Time remaining: {{ (timeLeft / 60).toFixed(2) }} min</p>
-    <p v-else>⛔ Campaign Ended</p>
-
-    
-    <div v-if="timeLeft > 0" class="donate-box">
-      <input v-model="donationEth" placeholder="Amount (ETH)" type="number" min="0.01" />
-      <button @click="donate">Donate</button>
-    </div>
-
-    
-    <div v-if="timeLeft === 0">
-      <button v-if="isGoalReached && !isFundsWithdrawn" @click="withdrawFunds">
-        Withdraw Funds
-      </button>
-
-      <button v-if="!isGoalReached" @click="refund">Refund My Donation</button>
-    </div>
-
-    
-    <h3>Donors</h3>
-    <ul v-if="donors.length">
-      <li v-for="d in donors" :key="d.donor">{{ d.donor }} → {{ d.amount }} ETH</li>
-    </ul>
-    <p v-else>No donations yet</p>
-  </div>
-</template>
-
-<style scoped>
-.cf-container {
-  padding: 20px;
-  max-width: 450px;
-  margin: auto;
-  font-family: Arial, sans-serif;
-}
-
-.donate-box {
-  margin: 12px 0;
-  display: flex;
-  gap: 8px;
-}
-
-button {
-  padding: 7px 12px;
-  cursor: pointer;
-}
-</style>
