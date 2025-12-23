@@ -1,24 +1,36 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useWeb3Store } from './stores/web3'
+
 import CampaignList from './components/CampaignList.vue'
 import CreateCampaign from './components/CreateCampaign.vue'
+import AgeGate from './components/AgeGate.vue'
 
 const ready = ref(false)
+const isAdult = ref(localStorage.getItem('isAdult') === 'true')
+
 const web3Store = useWeb3Store()
 
 type View = 'campaigns' | 'create'
 const currentView = ref<View>('campaigns')
 
 onMounted(async () => {
+  if (!isAdult.value) return
+
   console.log('Initializing Web3...')
   await web3Store.init()
   ready.value = true
 })
+
+function onAgeAccepted() {
+  isAdult.value = true
+  location.reload()
+}
 </script>
 
 <template>
-  <div v-if="ready" class="app-container">
+  <AgeGate v-if="!isAdult" @accepted="onAgeAccepted" />
+  <div v-else-if="ready" class="app-container">
     <!-- Top Bar -->
     <header class="top-bar">
       <div class="account-info">
@@ -33,13 +45,16 @@ onMounted(async () => {
         @change="web3Store.switchAccount(web3Store.selectedAccountIndex)"
         class="account-select"
       >
-        <option v-for="(acc, idx) in web3Store.accounts" :value="idx" :key="acc">
+        <option
+          v-for="(acc, idx) in web3Store.accounts"
+          :key="acc"
+          :value="idx"
+        >
           {{ acc }}
         </option>
       </select>
     </header>
 
-    <!-- Navigation -->
     <nav class="nav-tabs">
       <button
         class="nav-button"
@@ -58,7 +73,6 @@ onMounted(async () => {
       </button>
     </nav>
 
-    <!-- Content -->
     <main class="content">
       <CampaignList v-if="currentView === 'campaigns'" />
       <CreateCampaign v-else />
@@ -71,7 +85,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* Layout */
 .app-container {
   max-width: 1100px;
   margin: 0 auto;
@@ -80,7 +93,6 @@ onMounted(async () => {
     sans-serif;
 }
 
-/* Top Bar */
 .top-bar {
   display: flex;
   justify-content: space-between;
@@ -108,7 +120,6 @@ onMounted(async () => {
   font-family: monospace;
 }
 
-/* Select */
 .account-select {
   background: #020617;
   color: #e5e7eb;
@@ -118,7 +129,6 @@ onMounted(async () => {
   cursor: pointer;
 }
 
-/* Navigation Tabs */
 .nav-tabs {
   display: flex;
   gap: 0.5rem;
@@ -145,7 +155,6 @@ onMounted(async () => {
   border-color: #4f46e5;
 }
 
-/* Content */
 .content {
   background: blueviolet;
   padding: 1.5rem;
@@ -153,7 +162,6 @@ onMounted(async () => {
   border: 1px solid #e5e7eb;
 }
 
-/* Loading */
 .loading {
   height: 100vh;
   display: grid;
