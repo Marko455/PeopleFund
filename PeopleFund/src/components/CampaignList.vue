@@ -57,7 +57,6 @@ const campaignStore = useCampaignStore()
 
 const donationAmount = ref('0.1')
 
-// Load on mount
 onMounted(async () => {
   await web3.init()
   await campaignStore.fetchCampaigns()

@@ -1,0 +1,6 @@
+hardhat backend(2 cmd terminala, jedna naredba po terminalu):
+npx hardhat node
+npx hardhat ignition deploy ./ignition/modules/MultiCrowdFund.ts --network localhost
+
+vue frontend (1 cmd terminal):
+npm run dev

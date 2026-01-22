@@ -1,7 +1,6 @@
 <template>
   <div class="max-w-md mx-auto p-6 text-black">
     <div class="rounded-xl border bg-white shadow-sm p-6 space-y-5">
-      <!-- Header -->
       <div class="text-center">
         <h2 class="text-2xl font-bold">🎯 CrowdFund Campaign</h2>
         <p
@@ -12,7 +11,6 @@
         </p>
       </div>
 
-      <!-- Stats -->
       <div class="grid grid-cols-2 gap-4 text-sm">
         <div>
           <p class="font-semibold">Goal</p>
@@ -24,7 +22,6 @@
         </div>
       </div>
 
-      <!-- Progress -->
       <div>
         <div class="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
           <div
@@ -40,7 +37,6 @@
         </div>
       </div>
 
-      <!-- Time -->
       <div class="text-sm text-center">
         <p v-if="timeLeft > 0">
           ⏳ Time remaining:
@@ -53,7 +49,6 @@
         </p>
       </div>
 
-      <!-- Donate -->
       <div v-if="timeLeft > 0" class="flex gap-3">
         <input
           v-model="donationEth"
@@ -71,7 +66,6 @@
         </button>
       </div>
 
-      <!-- Actions -->
       <div v-if="timeLeft === 0" class="flex gap-3">
         <button
           v-if="isGoalReached && !isFundsWithdrawn"
@@ -90,7 +84,6 @@
         </button>
       </div>
 
-      <!-- Donors -->
       <div>
         <h3 class="text-lg font-semibold mb-2">💖 Donors</h3>
 
